@@ -507,12 +507,13 @@
                     4.535637149028077
                 ]
             ],
-            "id": "err rate"
+            "id": "err rate",
+            "y_axis":1
         }
     ],
     "option": {
         "x_label": "time",
-        "y_label": "rate",
+        "y_label": ["rate", "rate1"],
         "x_tick_fmt": "%H:%M",
         "title": "err rate"
     }

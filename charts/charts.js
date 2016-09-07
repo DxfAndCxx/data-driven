@@ -30,16 +30,15 @@ var Charts = function(elementId){
 
 Charts.prototype.Draw = function(){
     var params = getUrlParams();
-    console.log(params);
     var files = params["f"];
     if(!files) {
-        alert('请输入文件名');
         return;
     }
     var url = 'datas/'+files;
     var self = this;
     $.getJSON(url, function(data){
         var options = self._parseJson(data);
+        if(options === false) return;
         self._drawCharts(options);
     });
 }
@@ -56,11 +55,7 @@ Charts.prototype._drawCharts = function(options){
         xAxis: {
             type: 'datetime',
         },
-        yAxis: {
-            title:{
-                text:'rate',
-            },
-        },
+        yAxis: options.yAxis,
         credits: {
             enabled: false
         },
@@ -74,15 +69,36 @@ Charts.prototype._drawCharts = function(options){
 }
 
 Charts.prototype._parseJson = function(datas){
-    var data = datas.data;
-    var dds = [];
-    var series = data.map(function(d){
-        return {
+    var y_label = datas.option.y_label;
+    var y_axis = {title: {text: ''}};
+    if(!$.isArray(y_label)){
+        y_label = [y_label];
+    }
+    var yAxises = [];
+    $.each(y_label, function(index, y_l){
+        var res = {title: {text: y_l}};
+        if(index === 1){
+            res.opposite = true;
+        }
+        yAxises.push(res);
+    });
+
+    var series = [];
+    for(var i=0;i<datas.data.length;i++){
+        var d = datas.data[i];
+        var yAxisIndex = d.y_axis===1?d.y_axis:0;
+        if(yAxisIndex >= yAxises.length){
+            alert('y_label 错误');
+            return false;
+        }
+        series.push({
             name: d.id,
             data: d.values,
             type: 'line',
-        };
-    });
+            yAxis: yAxisIndex,
+        });
+    }
+
     var options = {
         title: {
             text: datas.option.title
@@ -91,6 +107,7 @@ Charts.prototype._parseJson = function(datas){
             type: 'time',
         },
         series: series,
+        yAxis:yAxises,
     };
     return options;
 

@@ -109,6 +109,7 @@ Charts.prototype._parseJson = function(datas){
         series: series,
         yAxis:yAxises,
     };
+
     return options;
 
 }

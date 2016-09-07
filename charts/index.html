@@ -17,18 +17,18 @@
 <p>支持数据格式</p>
 <pre>
 {
-    "data": [
-        {
-            "values": [[x,y],...],
-            "id": "id",
-            "y_axis":0
-        }
-    ],
+    "data": {
+        "name1": {
+            "value": [[x,y],...],
+            "y_axis":0,
+        },
+        ....
+    }
     "option": {
         "x_label": "time",
-        "y_label": ["rate", "rate1"],
-        "x_tick_fmt": "%H:%M",
-        "title": "err rate"
+        "y_label": ["ylabel0", "ylabel1"],
+        "x_tick_time_fmt": "%H:%M",
+        "title": "title"
     }
 }
 

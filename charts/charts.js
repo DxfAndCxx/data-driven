@@ -84,15 +84,15 @@ Charts.prototype._parseJson = function(datas){
     });
 
     var series = [];
-    for(var i=0;i<datas.data.length;i++){
-        var d = datas.data[i];
+    for(var name in datas.data){
+        var d = datas.data[name];
         var yAxisIndex = d.y_axis===1?d.y_axis:0;
         if(yAxisIndex >= yAxises.length){
             alert('y_label 错误');
             return false;
         }
         series.push({
-            name: d.id,
+            name: name,
             data: d.values,
             type: 'line',
             yAxis: yAxisIndex,

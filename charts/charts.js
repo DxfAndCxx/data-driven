@@ -50,18 +50,22 @@ Charts.prototype.Draw = function(){
 }
 
 Charts.prototype._drawCharts = function(options){
-    this.elementId.highcharts({
+    this.elementId.highcharts($.extend({
+    // this.elementId.highcharts({
         chart:{
             animation:false,
             type: "line",
         },
         title:{
-            text:options.title.text,
+            text:'chart',
         },
         xAxis: {
-            type: 'datetime',
+            type: 'liner',
+            text: 'number',
         },
-        yAxis: options.yAxis,
+        yAxis: {
+            text: 'number',
+        },
         credits: {
             enabled: false
         },
@@ -90,8 +94,8 @@ Charts.prototype._drawCharts = function(options){
                 enabled: false
             }
         },
-        series: options.series,
-    });
+        series: [{}],
+    }, options));
 }
 
 Charts.prototype._parseJson = function(datas){
@@ -136,15 +140,18 @@ Charts.prototype._parseJson = function(datas){
         title: {
             text: datas.option.title
         },
-        xAxis:{
-            type: 'time',
-        },
         series: series,
         yAxis:yAxises,
+        xAxis:{
+            title:{
+                text: datas.option.x_label
+            },
+        }
     };
-
+    if(["time", "datetime"].indexOf(datas.option.x_type) != -1){
+        options.xAxis.type = "datetime";
+    }
     return options;
-
 }
 
 

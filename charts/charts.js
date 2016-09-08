@@ -28,12 +28,18 @@ var Charts = function(elementId){
     this.elementId = $(elementId);
 }
 
-Charts.prototype.Draw = function(){
+Charts.prototype._parseParam=function(){
     var params = getUrlParams();
     var files = params["f"];
     if(!files) {
-        return;
+        return false;
     }
+    return files
+}
+
+Charts.prototype.Draw = function(){
+    var files = this._parseParam();
+    if(files === false) return;
     var url = 'datas/'+files;
     var self = this;
     $.getJSON(url, function(data){
@@ -58,6 +64,26 @@ Charts.prototype._drawCharts = function(options){
         yAxis: options.yAxis,
         credits: {
             enabled: false
+        },
+        tooltip: {
+            shared: false,
+            formatter: function () {
+                var xAxis_type = this.series.xAxis.options.type;
+                var x  = this.x;
+                var y = this.y;
+                if(y !== parseInt(y)){
+                    y = y.toFixed(2);
+                }
+                if(xAxis_type === "datetime"){
+                    x = (new Date(this.x)).Format("yyyy-MM-dd hh:mm:ss");
+                }
+                var html = x+"<br>";
+                html += this.series.name +" " +y+ "<br>";
+                if(this.point.Datas){
+                    html += this.point.Datas;
+                }
+                return html;
+            }
         },
         navigation: {
             buttonOptions: {
@@ -91,9 +117,16 @@ Charts.prototype._parseJson = function(datas){
             alert('y_label 错误');
             return false;
         }
+        var seriesData = d.values.map(function(vv){
+            return {
+                x: vv[0],
+                y: vv[1],
+                Datas: vv[2],
+            }
+        });
         series.push({
             name: name,
-            data: d.values,
+            data: seriesData,
             type: 'line',
             yAxis: yAxisIndex,
         });
@@ -113,3 +146,21 @@ Charts.prototype._parseJson = function(datas){
     return options;
 
 }
+
+
+Date.prototype.Format = function (fmt) {
+    var o = {
+        "M+": this.getMonth() + 1, //月份
+        "d+": this.getDate(), //日
+        "h+": this.getHours(), //小时
+        "m+": this.getMinutes(), //分
+        "s+": this.getSeconds(), //秒
+        "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+        "S": this.getMilliseconds() //毫秒
+    };
+    if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+    for (var k in o)
+    if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+    return fmt;
+}
+

@@ -50,22 +50,32 @@ Charts.prototype.Draw = function(){
 }
 
 Charts.prototype._drawCharts = function(options){
-    this.elementId.highcharts($.extend({
-    // this.elementId.highcharts({
+    var default_options = {
+        height: 700,
+        type: "line",
+        x_type: "linear",
+        x_title: "number",
+        yAxis: {
+            title: {text: 'number'},
+        },
+    };
+    var settings = $.extend({}, default_options, options);
+    this.elementId.highcharts({
         chart:{
             animation:false,
-            type: "line",
+            type: settings.type,
+            height: settings.height,
         },
         title:{
-            text:'chart',
+            text: settings.title,
         },
         xAxis: {
-            type: 'liner',
-            text: 'number',
+            type: settings.x_type,
+            title: {
+                text: settings.x_title,
+            },
         },
-        yAxis: {
-            text: 'number',
-        },
+        yAxis: settings.yAxis,
         credits: {
             enabled: false
         },
@@ -94,12 +104,13 @@ Charts.prototype._drawCharts = function(options){
                 enabled: false
             }
         },
-        series: [{}],
-    }, options));
+        series: settings.series,
+    });
 }
 
 Charts.prototype._parseJson = function(datas){
-    var y_label = datas.option.y_label;
+    var option = datas.option;
+    var y_label = option.y_label;
     var y_axis = {title: {text: ''}};
     if(!$.isArray(y_label)){
         y_label = [y_label];
@@ -136,22 +147,19 @@ Charts.prototype._parseJson = function(datas){
         });
     }
 
-    var options = {
-        title: {
-            text: datas.option.title
-        },
+    var chart_options = {
+        title: option.title,
         series: series,
-        yAxis:yAxises,
-        xAxis:{
-            title:{
-                text: datas.option.x_label
-            },
-        }
+        yAxis: yAxises,
+        x_title: option.x_label,
     };
-    if(["time", "datetime"].indexOf(datas.option.x_type) != -1){
-        options.xAxis.type = "datetime";
+    if(["time", "datetime"].indexOf(option.x_type) != -1){
+        chart_options["x_type"] = "datetime";
     }
-    return options;
+    if(option.height){
+        chart_options["height"] = option.height;
+    }
+    return chart_options;
 }
 
 

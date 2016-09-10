@@ -26,16 +26,61 @@ function getUrlParams() {
 
 
 var Charts = function(element){
-    this.elementObject = $(element);
+    this.elementChartObject = $("#charts");
+    this.elementHelpObject = $("#help");
     var thisChart = this;
 
     var _parseParam = function(){
         var params = getUrlParams();
-        var files = params["f"];
-        if(!files) {
+
+        var files = [];
+        var _files_no_sort = [];
+        $.each(params, function(key, value){
+            if(key[0] !== "f") return;
+
+            var cell = key.slice(1).split('.');
+            var row = parseInt(cell[0]);
+            var column = parseInt(cell[1]);
+
+            if(row){
+                var row_index = row - 1;
+                var row_file = files[row_index];
+                if(row_file) {
+                    if(column){
+                        var column_index = column - 1;
+                        row_file[column_index] = value;
+                    }
+                    else{
+                        row_file.push(value);
+                    }
+                }
+                else{
+                    files[row_index] = [value];
+                }
+            }
+            else{
+                _files_no_sort.push(value);
+            }
+        });
+
+        files.splice(0, 0, _files_no_sort);
+        var result = [];
+        for(var i=0;i<files.length;i++){
+            var row = files[i];
+            if(!row || row.length === 0) continue;
+
+            var rowData = [];
+            for(var j=0;j<row.length;j++){
+                if(row[j]){
+                    rowData.push(row[j]);
+                }
+            }
+            result.push(rowData);
+        }
+        if(result.length === 0){
             return false;
         }
-        return files
+        return result;
     }
 
     var _parseJson = function(datas){
@@ -92,7 +137,27 @@ var Charts = function(element){
         return chart_options;
     }
 
-    this._drawCharts = function(options){
+    var _createElements = function(rows){
+        var elements = document.createElement('div');
+        $.each(rows, function(row_index, columns){
+            var rowEle = document.createElement('div');
+            rowEle.className = 'row';
+            var width = ((1/columns.length)*100).toFixed(0) + "%";
+            $.each(columns, function(column_index, cell){
+                var cellID = row_index+'-'+column_index+'-chart';
+                var style = "width:"+width;
+                var ele = document.createElement('div');
+                ele.id = cellID;
+                ele.className = 'col';
+                ele.setAttribute('style', style)
+                rowEle.appendChild(ele);
+            });
+            elements.appendChild(rowEle);
+        });
+        return elements;
+    }
+
+    this._drawCharts = function(object, options){
         var default_options = {
             height: 700,
             type: "line",
@@ -103,7 +168,7 @@ var Charts = function(element){
             },
         };
         var settings = $.extend({}, default_options, options);
-        this.elementObject.highcharts({
+        object.highcharts({
             chart:{
                 animation:false,
                 type: settings.type,
@@ -151,8 +216,28 @@ var Charts = function(element){
         });
     }
 
-
     this.Draw = function(){
+        var files = _parseParam();
+        if(files === false) return;
+        elements = _createElements(files);
+
+        this.elementChartObject.append(elements);
+        this.elementHelpObject.css("display", "none");
+
+        $.each(files, function(row_index, columns){
+            $.each(columns, function(column_index, file){
+                var obj = $("#"+row_index+"-"+column_index+"-chart");
+                var url = 'datas/'+file;
+                $.getJSON(url, function(data){
+                    var options = _parseJson(data);
+                    if(options === false) return;
+                    thisChart._drawCharts(obj, options);
+                });
+            });
+        });
+    }
+
+    this.Draw_old = function(){
         var files = _parseParam();
         if(files === false) return;
         var url = 'datas/'+files;
